@@ -31,25 +31,25 @@ custom_style = Style(
     stroke_width=1
 )
 
-# Function to prepare data for the top 7 and "Others" with percentage calculation
-def prepare_data(counter, total_count):
+
+def prepare_data(counter):
     top_seven = counter.most_common(7)
-    top_seven_data = [(name, (count / total_count) * 100) for name, count in top_seven]
+    top_seven_data = [{'value': count, 'label': name} for name, count in top_seven]
     others_count = sum(count for _, count in counter.items() if _ not in dict(top_seven))
     if others_count > 0:
-        top_seven_data.append(('Others', (others_count / total_count) * 100))
+        top_seven_data.append({'value': others_count, 'label': 'Others'})
     return top_seven_data
-
-import re
 
 def group_isps(isp_name):
     keywords = {
         r"google|gcp": "Google Cloud",
         r"ovh": "OVH",
         r"hetzner": "Hetzner",
-        r"amazon": "Amazon",
-        r"digitalocean": "DigitalOcean",
+        r"amazon": "AWS",
+        r"digitalocean": "Digital Ocean",
         r"contabo": "Contabo",
+        r"scaleway": "Scaleway",
+        r"tencent": "Tencent",
         r"microsoft": "Microsoft"
     }
     for keyword, group_name in keywords.items():
@@ -60,53 +60,74 @@ def group_isps(isp_name):
 # Read CSV and count occurrences with grouping
 country_counter = Counter()
 isp_counter = Counter()
-
+version_counter = Counter()
 
 with open('celestia.csv', mode='r', encoding='utf-8') as csv_file:
     csv_reader = csv.DictReader(csv_file)
     for row in csv_reader:
         country_counter[row['country']] += 1
+        version_counter[row['version']] += 1
         grouped_isp_name = group_isps(row['ISP'])
         isp_counter[grouped_isp_name] += 1
 
 # Total counts for percentages
+# These are now just used in the tooltip formatter
 total_countries = sum(country_counter.values())
 total_isps = sum(isp_counter.values())
-
+total_versions = sum(version_counter.values())
 # Prepare data for the charts
-top_countries_data = prepare_data(country_counter, total_countries)
-top_isps_data = prepare_data(isp_counter, total_isps)
+top_countries_data = prepare_data(country_counter)
+top_isps_data = prepare_data(isp_counter)
+top_versions_data = prepare_data(version_counter)
+
+# Function to format the tooltip to show both percentage and raw count
+def format_tooltip(value, metadata):
+    total_count = metadata['total']
+    percentage = (value / total_count) * 100
+    return f'{percentage:.2f}% ({value} nodes)'
 
 
-# Create a bar chart for the top 7 countries + "Others"
-country_bar_chart = pygal.Bar(style=custom_style, show_legend=True, print_values=True, print_values_position='top')
-# country_bar_chart.title = 'Country distribution'
-for country, percent in top_countries_data:
-    country_bar_chart.add(country, percent)
-country_bar_chart.render_to_file('top_countries_bar.svg')
-
-# Create a bar chart for the top 7 ISPs + "Others"
-isp_bar_chart = pygal.Bar(style=custom_style, show_legend=True, print_values=True, print_values_position='top')
-# isp_bar_chart.title = 'ISP distribution'
-for isp, percent in top_isps_data:
-    isp_bar_chart.add(isp, percent)
-isp_bar_chart.render_to_file('top_isps_bar.svg')
-
-
-# Function to format the tooltip
-def format_tooltip(value):
-    return f'{value:.2f}%'
-
-# Create a pie chart for the top 7 countries + "Others"
-country_pie_chart = pygal.Pie(style=custom_style, inner_radius=.4, show_legend=True, tooltip_fancy_mode=True, value_formatter=format_tooltip)
-# country_pie_chart.title = 'Country distribution'
-for country, percent in top_countries_data:
-    country_pie_chart.add(country, percent)
+# Update Pie chart code to use the new data structure and tooltip formatter
+country_pie_chart = pygal.Pie(style=custom_style, inner_radius=.4, show_legend=True, tooltip_fancy_mode=True)
+country_pie_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_countries})
+for data in top_countries_data:
+    country_pie_chart.add(data['label'], data['value'])
 country_pie_chart.render_to_file('top_countries_pie.svg')
 
-# Create a pie chart for the top 7 ISPs + "Others"
-isp_pie_chart = pygal.Pie(style=custom_style, inner_radius=.4, show_legend=True, tooltip_fancy_mode=True, value_formatter=format_tooltip)
-# isp_pie_chart.title = 'ISP distribution'
-for isp, percent in top_isps_data:
-    isp_pie_chart.add(isp, percent)
+isp_pie_chart = pygal.Pie(style=custom_style, inner_radius=.4, show_legend=True, tooltip_fancy_mode=True)
+isp_pie_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_isps})
+for data in top_isps_data:
+    isp_pie_chart.add(data['label'], data['value'])
 isp_pie_chart.render_to_file('top_isps_pie.svg')
+
+
+
+
+# Pie chart for the top versions
+version_pie_chart = pygal.Pie(style=custom_style, inner_radius=.4, show_legend=True, tooltip_fancy_mode=True)
+version_pie_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_versions})
+for data in top_versions_data:
+    version_pie_chart.add(data['label'], data['value'])
+version_pie_chart.render_to_file('top_versions_pie.svg')
+
+# Bar chart for the top versions
+version_bar_chart = pygal.Bar(style=custom_style, show_legend=True, print_values=True, print_values_position='top')
+version_bar_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_versions})
+for data in top_versions_data:
+    version_bar_chart.add(data['label'], data['value'])
+version_bar_chart.render_to_file('top_versions_bar.svg')
+
+
+# # Create a bar chart for the top countries
+# country_bar_chart = pygal.Bar(style=custom_style, show_legend=True, print_values=True, print_values_position='top')
+# country_bar_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_countries})
+# for data in top_countries_data:
+#     country_bar_chart.add(data['label'], data['value'])
+# country_bar_chart.render_to_file('top_countries_bar.svg')
+
+# # Create a bar chart for the top ISPs
+# isp_bar_chart = pygal.Bar(style=custom_style, show_legend=True, print_values=True, print_values_position='top')
+# isp_bar_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_isps})
+# for data in top_isps_data:
+#     isp_bar_chart.add(data['label'], data['value'])
+# isp_bar_chart.render_to_file('top_isps_bar.svg')
