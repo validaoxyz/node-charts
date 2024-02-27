@@ -3,6 +3,20 @@ from collections import Counter
 import pygal
 from pygal.style import Style
 import re
+import sys
+
+# Check if the input filename is provided
+if len(sys.argv) < 2:
+    print("Usage: python script.py input_filename.csv")
+    sys.exit(1)
+
+input_filename = sys.argv[1]  # Get the input filename from command-line arguments
+
+# Function to create a filename based on the input filename
+def create_output_filename(input_filename, chart_type):
+    base_name = input_filename.rsplit('.', 1)[0]  # Remove the file extension
+    return f'{base_name}_{chart_type}.svg'
+
 
 # Define a custom style based on the original SVG
 custom_style = Style(
@@ -62,7 +76,7 @@ country_counter = Counter()
 isp_counter = Counter()
 version_counter = Counter()
 
-with open('celestia.csv', mode='r', encoding='utf-8') as csv_file:
+with open(input_filename, mode='r', encoding='utf-8') as csv_file:
     csv_reader = csv.DictReader(csv_file)
     for row in csv_reader:
         country_counter[row['country']] += 1
