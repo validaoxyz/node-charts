@@ -23,9 +23,9 @@ custom_style = Style(
     tooltip_font_family='Consolas, "Liberation Mono", Menlo, Courier, monospace',
     value_font_size=16,
     title_font_size=16,
-    label_font_size=10,
-    major_label_font_size=10,
-    legend_font_size=14,
+    label_font_size=16,
+    major_label_font_size=16,
+    legend_font_size=16,
     tooltip_font_size=14,
     stroke_opacity='.8',
     stroke_width=1
@@ -102,7 +102,6 @@ isp_pie_chart.render_to_file('top_isps_pie.svg')
 
 
 
-
 # Pie chart for the top versions
 version_pie_chart = pygal.Pie(style=custom_style, inner_radius=.4, show_legend=True, tooltip_fancy_mode=True)
 version_pie_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_versions})
@@ -115,6 +114,12 @@ version_bar_chart = pygal.Bar(style=custom_style, show_legend=True, print_values
 version_bar_chart.value_formatter = lambda x: format_tooltip(x, {'total': total_versions})
 for data in top_versions_data:
     version_bar_chart.add(data['label'], data['value'])
+version_bar_chart.render_to_file('top_versions_bar.svg')
+
+for data in top_versions_data:
+    version_bar_chart.add(data['label'], data['value'])
+
+# Save the chart to a file
 version_bar_chart.render_to_file('top_versions_bar.svg')
 
 
