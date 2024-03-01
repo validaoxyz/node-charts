@@ -1,9 +1,0 @@
-country,city,lat,long,ASN,ISP,moniker,version
-United States,Clifton,40.8364,-74.1403,14061,DIGITALOCEAN-ASN,8933289dd253,0.34.22
-India,Bengaluru,12.9634,77.5855,14061,DIGITALOCEAN-ASN,aa787ccdc4d5,0.34.22
-Germany,Frankfurt am Main,50.1188,8.6843,16509,AMAZON-02,node,1.3.0
-3.37.79.90,South Korea,Incheon,37.4585,126.7015,16509,AMAZON-02,tia-mainnet-node,1.3.0
-Germany,Frankfurt am Main,50.1188,8.6843,396356,LATITUDE-SH,Lemniscap,1.6.0
-169.155.171.41,United States,,37.751,-97.822,395201,ALLNODES,Tendermint,1.6.0
-Germany,Düsseldorf,51.2184,6.7734,51167,Contabo GmbH,contabo-node-7,1.3.0
-

@@ -1,1 +1,1 @@
-pygal
+pygal==3.0.4
